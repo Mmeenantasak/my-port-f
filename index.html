@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกรายงานการประชุม</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f8f0fb; /* สีชมพูอ่อน */
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* ปรับเงาให้ดูนุ่มขึ้น */
+            border: 1px solid #f0d4f5; /* เพิ่มขอบสีชมพูอ่อน */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #e91e63; /* สีชมพูเข้มขึ้น */
+            font-size: 2.5rem; /* ปรับขนาดตัวอักษรหัวข้อ */
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+            color: #c2185b; /* สีชมพูเข้ม */
+            font-size: 1.2rem; /* ปรับขนาดตัวอักษร label */
+        }
+
+        input, textarea, select {
+            padding: 15px;
+            border: 1px solid #f48fb1; /* สีชมพูอ่อน */
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease; /* เพิ่ม transition */
+            font-size: 1.1rem; /* ปรับขนาดตัวอักษร input */
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #e91e63; /* เปลี่ยนสี border เมื่อ focus */
+            box-shadow: 0 0 5px rgba(233, 30, 99, 0.3); /* เพิ่ม shadow เมื่อ focus */
+        }
+
+        button {
+            padding: 15px 30px;
+            background-color: #e91e63; /* สีชมพูเข้ม */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 30px;
+            align-self: center;
+            transition: background-color 0.3s ease, transform 0.2s ease; /* เพิ่ม transition */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* เพิ่ม shadow */
+            font-size: 1.2rem; /* ปรับขนาดตัวอักษร button */
+        }
+
+        button:hover {
+            background-color: #c2185b; /* สีชมพูเข้มขึ้นเมื่อ hover */
+            transform: translateY(-2px); /* เลื่อนขึ้นเล็กน้อยเมื่อ hover */
+        }
+
+        #export-excel {
+            background-color: #4caf50; /* สีเขียว */
+        }
+
+        #export-excel:hover {
+            background-color: #45a049; /* สีเขียวเข้มขึ้น */
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            input, textarea, select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>บันทึกรายงานการประชุม</h1>
+        <form id="meeting-form">
+            <label for="council">คณะที่จด:</label>
+            <input type="text" id="council" name="council" required>
+
+            <label for="date">วันที่:</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="time">เวลา:</label>
+            <input type="time" id="time" name="time" required>
+
+            <label for="room">ห้องประชุม:</label>
+            <input type="text" id="room" name="room" required>
+
+            <label for="section">ตอนที่จด (จำนวนงานที่จด):</label>
+            <input type="number" id="section" name="section" required>
+
+            <label for="recorder1">ชื่อผู้จด (คนที่หนึ่ง):</label>
+            <input type="text" id="recorder1" name="recorder1" required>
+
+            <label for="recorder2">ชื่อผู้จด (คนที่สอง):</label>
+            <input type="text" id="recorder2" name="recorder2">
+
+            <button type="submit">บันทึกข้อมูล</button>
+            <button type="button" id="export-excel">ดาวน์โหลดเป็น Excel</button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('meeting-form');
+        const exportButton = document.getElementById('export-excel');
+
+        let meetingData = [];
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const council = document.getElementById('council').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const room = document.getElementById('room').value;
+            const section = document.getElementById('section').value;
+            const recorder1 = document.getElementById('recorder1').value;
+            const recorder2 = document.getElementById('recorder2').value;
+
+            const meeting = {
+                council,
+                date,
+                time,
+                room,
+                section,
+                recorder1,
+                recorder2
+            };
+
+            meetingData.push(meeting);
+
+            alert('บันทึกข้อมูลสำเร็จ');
+            form.reset();
+        });
+
+        exportButton.addEventListener('click', () => {
+            if (meetingData.length === 0) {
+                alert('ไม่มีข้อมูลที่จะดาวน์โหลด');
+                return;
+            }
+
+            const worksheet = XLSX.utils.json_to_sheet(meetingData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'รายงานการประชุม');
+            XLSX.writeFile(workbook, 'รายงานการประชุม.xlsx');
+        });
+    </script>
+</body>
+</html>
