@@ -26,7 +26,7 @@
 
         h1 {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px; /* ลดระยะห่างด้านล่าง */
             color: #e91e63; /* สีชมพูเข้มขึ้น */
             font-size: 2.5rem; /* ปรับขนาดตัวอักษรหัวข้อ */
         }
@@ -34,18 +34,18 @@
         form {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px; /* ลดระยะห่างระหว่าง element ใน form */
         }
 
         label {
             font-weight: bold;
-            margin-top: 15px;
+            margin-top: 10px; /* ลดระยะห่างด้านบน */
             color: #c2185b; /* สีชมพูเข้ม */
             font-size: 1.2rem; /* ปรับขนาดตัวอักษร label */
         }
 
         input, textarea, select {
-            padding: 15px;
+            padding: 12px; /* ปรับ padding */
             border: 1px solid #f48fb1; /* สีชมพูอ่อน */
             border-radius: 5px;
             width: 100%;
@@ -61,14 +61,13 @@
         }
 
         button {
-            padding: 15px 30px;
+            padding: 12px 25px; /* ปรับ padding */
             background-color: #e91e63; /* สีชมพูเข้ม */
             color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 30px;
-            align-self: center;
+            margin-top: 20px; /* ลดระยะห่างด้านบน */
             transition: background-color 0.3s ease, transform 0.2s ease; /* เพิ่ม transition */
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* เพิ่ม shadow */
             font-size: 1.2rem; /* ปรับขนาดตัวอักษร button */
@@ -87,12 +86,31 @@
             background-color: #45a049; /* สีเขียวเข้มขึ้น */
         }
 
+        #export-text {
+            background-color: #008CBA; /* สีน้ำเงิน */
+        }
+
+        #export-text:hover {
+            background-color: #007ba7; /* สีน้ำเงินเข้มขึ้น */
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px; /* ระยะห่างระหว่างปุ่ม */
+            margin-top: 20px; /* ระยะห่างจาก form */
+            justify-content: center; /* จัดให้อยู่ตรงกลาง */
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
             }
             input, textarea, select {
                 width: 100%;
+            }
+            .button-group {
+                flex-direction: column; /* เรียงปุ่มแนวตั้งเมื่อหน้าจอเล็ก */
+                gap: 10px;
             }
         }
     </style>
@@ -123,13 +141,17 @@
             <input type="text" id="recorder2" name="recorder2">
 
             <button type="submit">บันทึกข้อมูล</button>
-            <button type="button" id="export-excel">ดาวน์โหลดเป็น Excel</button>
         </form>
+        <div class="button-group">
+            <button type="button" id="export-excel">ดาวน์โหลดเป็น Excel</button>
+            <button type="button" id="export-text">ดาวน์โหลดเป็น Text</button>
+        </div>
     </div>
 
     <script>
         const form = document.getElementById('meeting-form');
-        const exportButton = document.getElementById('export-excel');
+        const exportButtonExcel = document.getElementById('export-excel');
+        const exportButtonText = document.getElementById('export-text');
 
         let meetingData = [];
 
@@ -160,17 +182,52 @@
             form.reset();
         });
 
-        exportButton.addEventListener('click', () => {
+        exportButtonExcel.addEventListener('click', () => {
             if (meetingData.length === 0) {
                 alert('ไม่มีข้อมูลที่จะดาวน์โหลด');
                 return;
             }
 
-            const worksheet = XLSX.utils.json_to_sheet(meetingData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'รายงานการประชุม');
-            XLSX.writeFile(workbook, 'รายงานการประชุม.xlsx');
+            try {
+                const worksheet = XLSX.utils.json_to_sheet(meetingData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'รายงานการประชุม');
+                XLSX.writeFile(workbook, 'รายงานการประชุม.xlsx');
+            } catch (error) {
+                console.error("Error during Excel export:", error);
+                alert('เกิดข้อผิดพลาดในการดาวน์โหลด Excel: ' + error.message);
+            }
+        });
+
+        exportButtonText.addEventListener('click', () => {
+            if (meetingData.length === 0) {
+                alert('ไม่มีข้อมูลที่จะดาวน์โหลด');
+                return;
+            }
+
+            let textContent = "รายงานการประชุม\n\n";
+            meetingData.forEach((meeting, index) => {
+                textContent += `ลำดับที่ ${index + 1}\n`;
+                textContent += `คณะที่จด: ${meeting.council}\n`;
+                textContent += `วันที่: ${meeting.date}\n`;
+                textContent += `เวลา: ${meeting.time}\n`;
+                textContent += `ห้องประชุม: ${meeting.room}\n`;
+                textContent += `ตอนที่จด (จำนวนงานที่จด): ${meeting.section}\n`;
+                textContent += `ชื่อผู้จด (คนที่หนึ่ง): ${meeting.recorder1}\n`;
+                textContent += `ชื่อผู้จด (คนที่สอง): ${meeting.recorder2}\n\n`;
+            });
+
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'รายงานการประชุม.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
     </script>
 </body>
 </html>
+
